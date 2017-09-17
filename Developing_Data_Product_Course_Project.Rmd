@@ -1,0 +1,55 @@
+---
+title: "Developing Data Product Course Project"
+author: "Dahj Muwawa JN"
+date: "September 17, 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+```{r loadinglib, include=FALSE}
+  library(shiny)
+  library(caret)
+  library(rattle)
+  library(rpart.plot)
+  library(ggplot2)
+  library(dplyr)
+  library(C50)
+```
+## Telecoms Churn Prediction using Logical Regression Model
+Part of the final project for building Data Product. We classify customers to churn. 
+The basic steps are as follow:
+
+1. Loading the Churn dataset from the C50 package
+```{r loadind data, comment="", echo=TRUE}
+data(churn)
+```
+2. Do an EDA to evaluate relationships between variables.
+3. Train the datasets without & with cross validation
+4. Check the accuracy of the above, build the prediction trees and Predict the new value based on the two model. 
+Note that due to the limited number of slides, not all output will be shown. 
+
+## Building the Models
+Building a Regression Model with no Cross Validation
+
+```{r regression, comment="", echo=TRUE}
+   modFit=train(churn~., method="rpart", data=churnTrain)
+   lpartpred=predict(modFit, newdata = churnTest)
+   confusionMatrix(lpartpred, churnTest$churn)
+```
+## Applying Cross Validation
+With K=10 as the default. On the shiny app, the user can slide the slider 
+to choose the K value
+
+```{r cross-validation, comment="", echo=TRUE}
+folds=createFolds(y=churnTrain$churn, k=10, list = TRUE, returnTrain = FALSE)
+trainfolds=churnTrain[folds$Fold01,]
+modFit_rpart_c=train(churn~., method="rpart", data=trainfolds)
+lpart_cross_pred=predict(modFit_rpart_c, newdata = churnTest)
+confusionMatrix(lpart_cross_pred, churnTest$churn)
+```
+## Decision Tree of the Model
+```{r decision, comment="", echo=TRUE}
+  fancyRpartPlot(modFit$finalModel)
+```
